@@ -106,9 +106,10 @@ def classifier(U1, U2, y):
     y1_proj = U1 @ (U1.T @ y)
     y2_proj = U2 @ (U2.T @ y)
     return 3 if np.linalg.norm(y - y1_proj) < np.linalg.norm(y - y2_proj) else 4
-# Extend the classifier to handle multiple classes
+```
 
 ### Multiclass Classification
+```python
 def multiclass_classifier(U3, U4, U5, y):
     y3_proj = U3 @ (U3.T @ y)
     y4_proj = U4 @ (U4.T @ y)
