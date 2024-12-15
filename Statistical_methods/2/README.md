@@ -116,7 +116,7 @@ def multiclass_classifier(U3, U4, U5, y):
     
     distances = [np.linalg.norm(y - y3_proj), np.linalg.norm(y - y4_proj), np.linalg.norm(y - y5_proj)]
     return np.argmin(distances) + 3
-'''python
+```python
 as
 
 
