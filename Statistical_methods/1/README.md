@@ -52,7 +52,7 @@ def calculate_machine_epsilon():
     while 1.0 + epsilon > 1.0:
         epsilon /= 2.0
     return epsilon * 2.0
-
+```
 ## Result
 
 - **Machine Epsilon**: `ε = 2.220446049250313e-16`
@@ -136,7 +136,7 @@ def linear_system_analysis(n_values):
 
 n_values = range(10, 101, 10)
 linear_system_analysis(n_values)
-
+```
 
 ## Additional Observations
 
