@@ -1,131 +1,141 @@
-# Summary of Work: Visualizing Dyad and Classification of MNIST Digits with SVD Decomposition
+# Summary of Work: Visualizing Dyad and Image Compression via SVD
 
-## Part 1: Visualizing Dyad
+## Project Tasks
 
-### Task Overview
+### Visualizing Dyad and Compression
 
-#### Image Decomposition:
+**Given Task:**
+
 - Load an image into memory and compute its SVD.
-- Visualize individual dyads of the SVD decomposition.
-- Plot singular values of the matrix and observe their distribution.
-- Visualize rank-`k` approximations for different values of `k` and observe the effects.
-- Compute and plot the approximation error `||A - A_k||` as `k` increases.
-- Plot the compression factor `m*k/n` and determine the approximation error when `k = m`.
+- Visualize some dyads of the decomposition.
+- Plot the singular values of the image.
+- Visualize the k-rank approximation of the image for different values of k.
+- Compute and plot the approximation error for increasing k.
+- Plot the compression factor for increasing k.
+- Determine the approximation error when the compressed image retains the same information as the uncompressed one (error = 0).
 
-#### Observations:
-- Singular values decrease rapidly, indicating that only a few terms significantly contribute to the image reconstruction.
-- Approximation error decreases with increasing `k`, stabilizing after a certain threshold.
-- Compression factor demonstrates diminishing returns in the trade-off between reduced data storage and image quality.
+**Observations:**
 
----
+1. **Dyad Visualization:**
+   - Each dyad contributes specific information to the image reconstruction.
+   - Low k values show coarse approximations, while higher k values add more details.
+   - For k = 1, the intensity is uniform, while for higher k values, details become clearer.
 
-## Part 2: Classification of MNIST Digits with SVD Decomposition
+2. **Singular Values:**
+   - Singular values decline sharply after ~25, suggesting minimal information contribution beyond this rank.
+   - This aligns with the rank of the image matrix and its inherent structure.
 
-### Binary Classification of Digits (3 vs 4)
+3. **k-Rank Approximation:**
+   - Increasing k improves image quality.
+   - Beyond a certain k value, visual improvements are negligible.
 
-#### Task Overview:
-- Load the MNIST dataset and split it into training and testing sets.
-- Extract the subsets corresponding to digits 3 (`3`) and 4 (`4`).
-- Compute the SVD decomposition of `X_3` and `X_4`:
-  - Use `U_3` and `U_4` for projection.
-- Classify unknown digits by comparing distances:
-  - Assign `y` to 3 if `||y - U_3 * (U_3^T * y)|| < ||y - U_4 * (U_4^T * y)||`, otherwise assign to 4.
-- Evaluate the misclassification rate over the test set.
-- Analyze the relationship between digit similarity, data imbalance, and classification accuracy.
+4. **Approximation Error:**
+   - Error decreases rapidly with increasing k.
+   - Error reduction correlates with the steep drop in singular values.
 
-#### Key Results:
-- **Case (3 vs 4)**:
-  - High classification accuracy due to the distinct appearance of digits.
-- **Imbalance and Similarity Effects**:
-  - Imbalanced datasets (e.g., 0 vs 8) favor the class with more data.
-  - Similar-looking digits (e.g., 5 vs 6) lead to reduced accuracy, even with balanced datasets.
-
-#### Insights:
-- Performance is significantly influenced by both visual similarity and dataset balance.
-- Increasing `k` does not guarantee monotonic improvement in accuracy, as results depend on digit permutations.
-
-### Multiclass Classification (3, 4, 5)
-
-#### Task Overview:
-- Extend the binary classifier to handle three classes (3, 4, 5).
-- Compute the SVD decompositions `U_3`, `U_4`, and `U_5`.
-- Classify `y` based on the smallest distance:
-  - Assign `y` to the class that minimizes `||y - U_i * (U_i^T * y)||`, where `i ∈ {3, 4, 5}`.
-- Evaluate accuracy for each class and overall performance.
-
-#### Key Results:
-- **Accuracy**:
-  - Classes 3 and 4 exhibit high accuracy.
-  - Class 5 has a ~20% drop in accuracy due to its visual similarity to other digits.
-
-#### Insights:
-- Multiclass performance depends on class-specific visual features.
-- Imbalanced datasets amplify classification errors, especially for visually similar digits.
-
----
-
-## Final Observations
-
-### Binary Classification:
-- Visual similarity and imbalance are critical factors affecting performance.
-- Distinct pairs (e.g., 3 vs 4) yield better results than similar pairs (e.g., 0 vs 8).
-
-### Multiclass Classification:
-- Adding more classes reduces accuracy for visually similar digits.
-- Dataset balance is crucial to mitigate bias in classification results.
-
----
+5. **Compression Factor:**
+   - Compression factor decreases with increasing k.
+   - When k reaches a specific value, approximation error is minimal, and the image quality matches the uncompressed version.
 
 ## Code Highlights
 
-### Binary Classification
+### Dyad Visualization
 
 ```python
-from scipy.io import loadmat
 import numpy as np
+import matplotlib.pyplot as plt
+from skimage import data
 
-# Load data
-mnist_data = loadmat('MNIST.mat')
-X = mnist_data['X']
-Y = mnist_data['I'].flatten()
+# Load an image and compute SVD
+image = data.camera()
+U, S, Vh = np.linalg.svd(image, full_matrices=False)
 
-# Split data
-def split_data(X, Y, Ntrain):
-    idx = np.arange(len(Y))
-    np.random.shuffle(idx)
-    train_idx, test_idx = idx[:Ntrain], idx[Ntrain:]
-    return (X[:, train_idx], Y[train_idx]), (X[:, test_idx], Y[test_idx])
+# Function to reconstruct image from k singular values
+def reconstruct_image(U, S, Vh, k):
+    return np.dot(U[:, :k], np.dot(np.diag(S[:k]), Vh[:k, :]))
 
-(Xtrain, Ytrain), (Xtest, Ytest) = split_data(X, Y, int(0.7 * len(Y)))
+# Visualize dyads
+k_visualize = 5
+fig, axs = plt.subplots(1, k_visualize, figsize=(15, 5))
+for i in range(k_visualize):
+    axs[i].imshow(reconstruct_image(U, S, Vh, i+1), cmap='gray')
+    axs[i].set_title(f'k = {i+1}')
+plt.show()```
 
-# SVD and classification
-U1, _, _ = np.linalg.svd(Xtrain[:, Ytrain == 3], full_matrices=False)
-U2, _, _ = np.linalg.svd(Xtrain[:, Ytrain == 4], full_matrices=False)
-
-def classifier(U1, U2, y):
-    y1_proj = U1 @ (U1.T @ y)
-    y2_proj = U2 @ (U2.T @ y)
-    return 3 if np.linalg.norm(y - y1_proj) < np.linalg.norm(y - y2_proj) else 4
-```
-
-### Multiclass Classification
+### Singular Value Plot
 ```python
-def multiclass_classifier(U3, U4, U5, y):
-    y3_proj = U3 @ (U3.T @ y)
-    y4_proj = U4 @ (U4.T @ y)
-    y5_proj = U5 @ (U5.T @ y)
-    
-    distances = [np.linalg.norm(y - y3_proj), np.linalg.norm(y - y4_proj), np.linalg.norm(y - y5_proj)]
-    return np.argmin(distances) + 3
+# Plot singular values
+plt.figure()
+plt.plot(S, label='Camera')
+plt.title('Singular Values')
+plt.xlabel('Index')
+plt.ylabel('Singular Value')
+plt.legend()
+plt.show()
 ```
-as
 
+### k-Rank Approximation
+```python
+k_values = [5, 20, 50, 100, 300]
+errors = []
+compression_factors = []
 
+for k in k_values:
+    approx_image = reconstruct_image(U, S, Vh, k)
+    error = np.linalg.norm(image - approx_image, 'fro')
+    errors.append(error)
+    compression_factor = 1 - (k * (image.shape[0] + image.shape[1] + 1)) / (image.shape[0] * image.shape[1])
+    compression_factors.append(compression_factor)
 
+    # Visualize approximation
+    plt.figure()
+    plt.imshow(approx_image, cmap='gray')
+    plt.title(f'k-Rank Approximation with k = {k}')
+    plt.show()
+```
 
+### Approximation Error and Compression Factor
+```python
+# Plot approximation error
+plt.figure()
+plt.plot(k_values, errors, label='Camera')
+plt.title('Approximation Error')
+plt.xlabel('k')
+plt.ylabel('Error')
+plt.legend()
+plt.show()
 
+# Plot compression factor
+plt.figure()
+plt.plot(k_values, compression_factors, label='Camera')
+plt.title('Compression Factor')
+plt.xlabel('k')
+plt.ylabel('Compression Factor')
+plt.legend()
+plt.show()
+```
 
+### Approximation Error and Compression Factor
+```python
+def calculate_compression_factor(k, m, n):
+    return 1 - (k * (m + n + 1)) / (m * n)
 
+k_values = list(range(1, min(image.shape)))
+compression_factors = [calculate_compression_factor(k, image.shape[0], image.shape[1]) for k in k_values]
+
+plt.figure()
+plt.plot(k_values, compression_factors, label='Camera')
+plt.axhline(y=0, color='black', linestyle='--', label='y=0')
+plt.title('Compression Factor')
+plt.xlabel('k')
+plt.ylabel('Compression Factor')
+plt.legend()
+plt.show()
+
+# Value of k when compression factor is 0
+ck0 = np.argmax(np.array(compression_factors) <= 0) + 1
+print(f"Value of k when compression factor is 0: {ck0}")
+```
 
 
 
