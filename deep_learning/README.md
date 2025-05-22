@@ -27,6 +27,8 @@ Key innovations:
 
 ## ⚙️ Model Architecture
 
+![My Project Screenshot](deep_learning/architecture.jpg)
+
 ```mermaid
 graph TD
   A[Input (32×32×1)] -->|Conv + MaxPool ×3| B[Encoder Feature Map]
