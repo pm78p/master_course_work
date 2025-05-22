@@ -111,7 +111,3 @@ EM is more flexible, handling complex models, missing data, and latent variables
 
 ---
 
-# Review
-
-Would you recommend this book?  
-*Write your review here.*
