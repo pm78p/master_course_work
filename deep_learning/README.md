@@ -30,11 +30,46 @@ Key innovations:
 ![My Project Screenshot](architecture.jpg)
 
 ```mermaid
-graph TD
-    A[Input (32×32×1)] -->|Conv + MaxPool ×3| B[Encoder Feature Map]
-    B -->|Reshape → Transformer Blocks| C[Contextual Features]
-    C -->|Reshape → Decoder Branch 1| D1[Upsample + CBAM + Autoencoder Sub-block]
-    C -->|Reshape → Decoder Branch 2| D2[Upsample + CBAM + Autoencoder Sub-block]
-    D1 -->|Final Conv| Output1[Reconstructed MNIST]
-    D2 -->|Final Conv| Output2[Reconstructed Fashion-MNIST]
+graph TD;
+A["Input (32x32x1)"] --> |Conv + MaxPool x3| B[Encoder Feature Map];
+B -->|Reshape to tokens| C[Contextual Features];
+C -->|Branch 1 reshape| D1[Decoder 1: Upsample + CBAM + AE sub-block];
+C -->|Branch 2 reshape| D2[Decoder 2: Upsample + CBAM + AE sub-block];
+D1 -->|Final conv| Output1[Reconstructed MNIST];
+D2 -->|Final conv| Output2[Reconstructed Fashion];
+```
+
+```markdown
+* **Encoder**: 3× downsampling via Conv2D → ReLU → MaxPool
+* **Bottleneck**: 3 transformer encoder blocks (192-dim, 4 heads) with LayerNorm & residuals
+* **Decoder branches**:
+    * Upsample ×3 (Conv2DTranspose + BatchNorm + ReLU) with skip links
+    * **CBAM** attention after each block
+    * Intermediate autoencoder sub-structure with a lightweight transformer (64-dim, 2 heads)
+* **Output heads**: 1×1 Conv2D with sigmoid activation
+```
+---
+## 📊 Results
+
+- **Best Mean MSE** (averaged over 10 runs, 50 000 samples): **0.00056**  
+- Convergence: ~ 60–70 epochs with EarlyStopping (patience=5)  
+
+
+---
+
+## 🔬 Experimental Insights
+
+- **Baseline UNet + Transformer**: MSE = 0.00056  
+- **Transfer learning (EMNIST encoder freezing)**: MSE ≈ 0.0008  
+- **Pretrained autoencoder integration**: no improvement beyond MSE = 0.00057  
+- **CBAM only**: marginal gain (MSE = 0.0005678)  
+- **Dual-decoder with autoencoder sub-blocks**: **best performance**
+
+---
+
+## 🔮 Future Work
+
+- **Imbalanced-class autoencoder**: train an Autoencoder on a dataset with 1 % of one class + 99 % of another to learn and remove rare components  
+- **Dynamic freezing schedules** in transformer layers  
+- **Multi-scale attention** for finer detail reconstruction  
 
