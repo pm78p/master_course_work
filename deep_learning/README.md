@@ -31,9 +31,10 @@ Key innovations:
 
 ```mermaid
 graph TD
-  A[Input (32×32×1)] -->|Conv + MaxPool ×3| B[Encoder Feature Map]
-  B -->|Reshape → Transformer Blocks| C[Contextual Features]
-  C -->|Reshape → Decoder Branch 1| D1[Upsample + CBAM + Autoencoder Sub-block]
-  C -->|Reshape → Decoder Branch 2| D2[Upsample + CBAM + Autoencoder Sub-block]
-  D1 -->|Final Conv| Output1[Reconstructed MNIST]
-  D2 -->|Final Conv| Output2[Reconstructed Fashion-MNIST]
+    A[Input (32×32×1)] -->|Conv + MaxPool ×3| B[Encoder Feature Map]
+    B -->|Reshape → Transformer Blocks| C[Contextual Features]
+    C -->|Reshape → Decoder Branch 1| D1[Upsample + CBAM + Autoencoder Sub-block]
+    C -->|Reshape → Decoder Branch 2| D2[Upsample + CBAM + Autoencoder Sub-block]
+    D1 -->|Final Conv| Output1[Reconstructed MNIST]
+    D2 -->|Final Conv| Output2[Reconstructed Fashion-MNIST]
+
