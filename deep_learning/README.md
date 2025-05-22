@@ -27,7 +27,7 @@ Key innovations:
 
 ## ⚙️ Model Architecture
 
-![My Project Screenshot](deep_learning/architecture.jpg)
+![My Project Screenshot](architecture.jpg)
 
 ```mermaid
 graph TD
